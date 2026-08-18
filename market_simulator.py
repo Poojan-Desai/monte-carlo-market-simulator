@@ -46,15 +46,31 @@ def simulate_paths(
 
 
 def summarize(paths: np.ndarray) -> dict[str, float | int]:
-    """Summarize the distribution of ending scenario prices."""
+    """Summarize terminal prices and transparent downside-risk indicators."""
+    if paths.ndim != 2 or paths.shape[0] < 1 or paths.shape[1] < 2:
+        raise ValueError("Paths must be a non-empty 2D matrix with at least one future day")
+
+    starting_prices = paths[:, 0]
+    if not np.all(np.isfinite(paths)) or np.any(starting_prices <= 0):
+        raise ValueError("Paths must contain finite values and positive starting prices")
+
     terminal_prices = paths[:, -1]
+    terminal_returns = terminal_prices / starting_prices - 1
+    fifth_percentile_return = float(np.percentile(terminal_returns, 5))
+    worst_tail = terminal_returns[terminal_returns <= fifth_percentile_return]
     return {
         "simulations": int(paths.shape[0]),
         "days": int(paths.shape[1] - 1),
+        "starting_price": float(np.mean(starting_prices)),
         "mean_terminal_price": float(np.mean(terminal_prices)),
         "median_terminal_price": float(np.median(terminal_prices)),
         "p05_terminal_price": float(np.percentile(terminal_prices, 5)),
         "p95_terminal_price": float(np.percentile(terminal_prices, 95)),
+        "mean_terminal_return_pct": float(np.mean(terminal_returns) * 100),
+        "p05_terminal_return_pct": fifth_percentile_return * 100,
+        "p95_terminal_return_pct": float(np.percentile(terminal_returns, 95) * 100),
+        "probability_below_start_pct": float(np.mean(terminal_returns < 0) * 100),
+        "mean_return_in_worst_5pct_pct": float(np.mean(worst_tail) * 100),
     }
 
 

@@ -21,8 +21,20 @@ def test_summary_uses_terminal_distribution() -> None:
     assert result["simulations"] == 3
     assert result["days"] == 1
     assert result["median_terminal_price"] == 100
+    assert result["mean_terminal_return_pct"] == pytest.approx(0)
+    assert result["probability_below_start_pct"] == pytest.approx(100 / 3)
+    assert result["p05_terminal_return_pct"] == pytest.approx(-9)
+    assert result["mean_return_in_worst_5pct_pct"] == pytest.approx(-10)
 
 
 def test_simulation_rejects_empty_returns() -> None:
     with pytest.raises(ValueError, match="finite historical return"):
         simulate_paths(100, np.array([]), days=5, simulations=10, seed=7)
+
+
+def test_summary_rejects_malformed_or_non_finite_paths() -> None:
+    with pytest.raises(ValueError, match="2D matrix"):
+        summarize(np.array([100, 101], dtype=float))
+
+    with pytest.raises(ValueError, match="finite values"):
+        summarize(np.array([[100, np.nan]], dtype=float))
