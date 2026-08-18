@@ -2,7 +2,8 @@
 
 A small Python data project that resamples historical daily returns to produce a
 distribution of possible future price paths. It reports terminal-price
-percentiles and saves reproducible history/scenario charts.
+percentiles, return ranges, the simulated chance of finishing below the start,
+and the mean outcome in the worst 5% tail, then saves reproducible charts.
 
 This is a **scenario-analysis exercise, not a stock-price prediction system**.
 Bootstrap simulations assume the sampled historical returns are informative
@@ -15,11 +16,14 @@ transaction costs. The output is not investment advice.
 2. Calculate historical daily percentage returns.
 3. Sample those returns with replacement using a fixed random seed.
 4. Compound each sampled series from the latest observed price.
-5. Report the mean, median, 5th percentile, and 95th percentile ending prices.
+5. Report price percentiles plus explicit return and downside-tail indicators.
 
 The bootstrap preserves the empirical one-day return distribution, but it does
 not preserve serial dependence or prove that the distribution will remain
 stable.
+
+The downside fields are descriptive properties of the simulated paths—not
+validated Value-at-Risk estimates and not forecasts of real losses.
 
 ## Run
 
@@ -42,8 +46,8 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-Tests exercise the deterministic simulation and summary logic without making a
-network request.
+Tests exercise deterministic simulation, downside calculations, and malformed
+input handling without making a network request.
 
 ## Stack
 
